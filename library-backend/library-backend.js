@@ -8,7 +8,7 @@ const Author = require('./models/author')
 const User = require('./models/user')
 
 const MONGODB_URI = "mongodb+srv://fullstackopen:MRdAYqlAG7WO33ZJ@cluster0.k68jk.mongodb.net/graphql?retryWrites=true&w=majority"
-const PASSWORD = 'PACO_PEPE'
+const PASSWORD = 'password'
 const SECRET_KEY = 'AGSDGHSDGASGASDGHAGSAHSGASJDHHASGDAHSDG'
 
 mongoose.connect(MONGODB_URI, {
