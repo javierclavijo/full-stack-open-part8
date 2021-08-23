@@ -3,7 +3,7 @@ import {useQuery} from "@apollo/client";
 import {ALL_BOOKS} from "../queries";
 
 const Books = (props) => {
-    const result = useQuery(ALL_BOOKS)
+    const result = useQuery(ALL_BOOKS, {pollInterval: 5000})
     const [books, setBooks] = useState([])
     const [filter, setFilter] = useState('')
     const [genres, setGenres] = useState([])
@@ -54,7 +54,10 @@ const Books = (props) => {
                 <h4>Filter by genre</h4>
                 <select
                     value={filter}
-                    onChange={(e) => setFilter(e.target.value)}>
+                    onChange={(e) => {
+                        setFilter(e.target.value)
+                        result.refetch()
+                    }}>
                     <option value="">No filter</option>
                     {(genres.map(genre =>
                         <option value={genre}>{genre}</option>
