@@ -5,10 +5,12 @@ import NewBook from './components/NewBook'
 import Login from "./components/Login";
 import {useApolloClient, useMutation} from "@apollo/client";
 import {LOGIN} from "./queries";
+import Recommendations from "./components/Recommendations";
 
 const App = () => {
-    const [page, setPage] = useState('authors')
+    const [page, setPage] = useState('recommendations')
     const [token, setToken] = useState(null)
+    const [user, setUser] = useState(null)
     const client = useApolloClient()
 
     useEffect(() => {
@@ -26,7 +28,7 @@ const App = () => {
 
     if (token && page === 'login') {
         setPage('authors')
-    } else if (!token && page === 'add') {
+    } else if (!token && (page === 'add' || page === 'recommendations')) {
         setPage('login')
     }
 
@@ -40,6 +42,7 @@ const App = () => {
                     ? <button onClick={() => setPage('login')}>login</button>
                     : <div>
                         <button onClick={() => setPage('add')}>add book</button>
+                        <button onClick={() => setPage('recommendations')}>recommendations</button>
                         <button onClick={handleLogout}>logout</button>
                     </div>
                 }
@@ -60,6 +63,10 @@ const App = () => {
             <Login
                 show={page === 'login'}
                 setToken={setToken}
+            />
+
+            <Recommendations
+                show={page === 'recommendations'}
             />
 
         </div>

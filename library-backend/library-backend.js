@@ -142,6 +142,7 @@ const typeDefs = gql`
     bookCount: Int!
     authorCount: Int!
     allBooks(author: String, genre: String): [Book!]!
+    recommendations: [Book!]!
     allAuthors: [Author!]!
     me: User
   }
@@ -172,9 +173,21 @@ const resolvers = {
     Query: {
         bookCount: async () => Book.collection.countDocuments(),
         authorCount: async () => Author.collection.countDocuments(),
-        allBooks: async (root, args) => await Book.find({}).populate('author', {name: 1, born: 1, bookCount: 1}),
+        allBooks: async (root, args) => {
+            const filter = args.genre ? {genres: args.genre} : {}
+            return await Book
+                .find(filter)
+                .populate('author', {name: 1, born: 1, bookCount: 1})
+        },
         allAuthors: async () => await Author.find({}),
-        me: async (root,args,context) => await context.currentUser
+        me: async (root, args, context) => await context.currentUser,
+        recommendations: async (root, args, context) => {
+            const user = await context.currentUser
+            return await Book
+                .find({genres: user.favoriteGenre})
+                .populate('author', {name: 1, born: 1, bookCount: 1}
+                )
+        },
     },
 
     Mutation: {
@@ -237,7 +250,7 @@ const resolvers = {
                 user: user.username,
                 id: user._id
             }
-            return {value:jwt.sign(userForToken, SECRET_KEY)}
+            return {value: jwt.sign(userForToken, SECRET_KEY)}
 
         }
     },
@@ -250,14 +263,14 @@ const resolvers = {
 const server = new ApolloServer({
     typeDefs,
     resolvers,
-    context: async ({ req }) => {
+    context: async ({req}) => {
         const auth = req ? req.headers.authorization : null
         if (auth && auth.toLowerCase().startsWith('bearer ')) {
             const decodedToken = jwt.verify(
                 auth.substring(7), SECRET_KEY
             )
             const currentUser = await User.findById(decodedToken.id)
-            return { currentUser }
+            return {currentUser}
         }
     }
 })
