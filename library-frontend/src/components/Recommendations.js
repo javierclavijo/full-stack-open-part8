@@ -1,10 +1,10 @@
 import React, {useEffect, useState} from 'react'
-import {useQuery} from "@apollo/client";
+import {useLazyQuery, useQuery} from "@apollo/client";
 import {ALL_BOOKS, ME, RECOMMENDATIONS} from "../queries";
 
 const Recommendations = (props) => {
     const [user, setUser] = useState(null)
-    const [queryBooks, result] = useQuery(RECOMMENDATIONS)
+    const [queryBooks, result] = useLazyQuery(RECOMMENDATIONS)
     const [books, setBooks] = useState([])
     const userResult = useQuery(ME)
 
@@ -17,7 +17,7 @@ const Recommendations = (props) => {
     useEffect(() => {
         if (userResult.data) {
             setUser(userResult.data.me)
-            queryBooks({variables: {$genre: user.favoriteGenre}})
+            queryBooks({variables: {$genre: userResult.data.me.favoriteGenre}})
         }
     }, [userResult])
 
