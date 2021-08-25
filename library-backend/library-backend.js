@@ -1,4 +1,5 @@
 const {ApolloServer, gql, UserInputError} = require('apollo-server')
+const {PubSub} = require('graphql-subscriptions')
 const {v1: uuid} = require('uuid')
 const mongoose = require("mongoose")
 const jwt = require('jsonwebtoken')
@@ -10,6 +11,8 @@ const User = require('./models/user')
 const MONGODB_URI = "mongodb+srv://fullstackopen:MRdAYqlAG7WO33ZJ@cluster0.k68jk.mongodb.net/graphql?retryWrites=true&w=majority"
 const PASSWORD = 'password'
 const SECRET_KEY = 'AGSDGHSDGASGASDGHAGSAHSGASJDHHASGDAHSDG'
+
+const pubsub = new PubSub()
 
 mongoose.connect(MONGODB_URI, {
     useNewUrlParser: true,
@@ -167,6 +170,10 @@ const typeDefs = gql`
         password: String!
     ): Token
   }
+  
+  type Subscription {
+    bookAdded: Book!
+  }
 `
 
 const resolvers = {
@@ -213,6 +220,8 @@ const resolvers = {
                     invalidArgs: args,
                 })
             })
+            await pubsub.publish('BOOK_ADDED', {bookAdded: book})
+
             return book
         },
         editAuthor: async (root, args) => {
@@ -252,6 +261,12 @@ const resolvers = {
             }
             return {value: jwt.sign(userForToken, SECRET_KEY)}
 
+        }
+    },
+
+    Subscription: {
+        bookAdded: {
+            subscribe: () => pubsub.asyncIterator(['BOOK_ADDED'])
         }
     },
 

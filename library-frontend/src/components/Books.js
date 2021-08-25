@@ -1,12 +1,22 @@
 import React, {useEffect, useState} from 'react'
-import {useQuery} from "@apollo/client";
-import {ALL_BOOKS} from "../queries";
+import {useQuery, useSubscription} from "@apollo/client";
+import {ALL_BOOKS, BOOK_ADDED} from "../queries";
 
 const Books = (props) => {
     const result = useQuery(ALL_BOOKS, {pollInterval: 5000})
     const [books, setBooks] = useState([])
     const [filter, setFilter] = useState('')
     const [genres, setGenres] = useState([])
+
+
+    useSubscription(BOOK_ADDED, {
+        onSubscriptionData: ({subscriptionData}) => {
+            const newBook = subscriptionData.data.bookAdded
+            setBooks(books.concat(newBook))
+            console.log(newBook)
+            alert(`New book added: ${newBook.title}`)
+        }
+    })
 
     useEffect(() => {
         if (result.data) {

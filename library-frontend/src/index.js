@@ -1,9 +1,11 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import App from './App'
-import {ApolloClient, HttpLink, InMemoryCache, ApolloProvider, ApolloLink} from '@apollo/client'
+import {ApolloClient, HttpLink, InMemoryCache, ApolloProvider, ApolloLink, split} from '@apollo/client'
 import {onError} from "@apollo/client/link/error";
 import {setContext} from "@apollo/client/link/context";
+import {WebSocketLink} from "@apollo/client/link/ws";
+import {getMainDefinition} from "@apollo/client/utilities";
 
 const errorLink = onError(({ graphQLErrors, networkError }) => {
     if (graphQLErrors)
@@ -25,13 +27,32 @@ const authLink = setContext((_, {headers}) => {
     }
 })
 
+const httpLink = new HttpLink({
+    uri: 'http://localhost:4000',
+})
+
+const wsLink = new WebSocketLink({
+    uri: `ws://localhost:4000/graphql`,
+    options: {
+        reconnect: true
+    }
+})
+
+const splitLink = split(
+    ({ query }) => {
+        const definition = getMainDefinition(query)
+        return (
+            definition.kind === 'OperationDefinition' &&
+            definition.operation === 'subscription'
+        );
+    },
+    wsLink,
+    authLink.concat(httpLink),
+)
+
 const client = new ApolloClient({
     cache: new InMemoryCache(),
-    link: ApolloLink.from([
-        authLink,
-        errorLink,
-        new HttpLink({uri: 'http://localhost:4000'}),
-    ])
+    link: splitLink
 })
 
 ReactDOM.render(
