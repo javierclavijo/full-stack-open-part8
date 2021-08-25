@@ -269,10 +269,6 @@ const resolvers = {
             subscribe: () => pubsub.asyncIterator(['BOOK_ADDED'])
         }
     },
-
-    Author: {
-        bookCount: (root) => Book.find({author: root.id}).countDocuments(),
-    }
 }
 
 const server = new ApolloServer({
